@@ -367,6 +367,12 @@ void LidarPubHandler::ProcessCartesianHighPoint(RawPacket & pkt) {
   LivoxLidarCartesianHighRawPoint* raw = (LivoxLidarCartesianHighRawPoint*)pkt.raw_data.data();
   PointXyzlt point = {};
   for (uint32_t i = 0; i < pkt.point_num; i++) {
+    // 角度过滤：在原始雷达坐标系中过滤
+    float angle = atan2(raw[i].y, raw[i].x) * 180.0 / M_PI;
+    if (angle < -50.0 && angle > -130.0) {
+      continue;  // 跳过雷达后方的点，这个后方是车的后方，实际上是雷达的右侧
+    }
+    
     if (pkt.extrinsic_enable) {
       point.x = raw[i].x / 1000.0;
       point.y = raw[i].y / 1000.0;
